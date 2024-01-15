@@ -1,0 +1,2 @@
+"file" "checksum" "filesize" "algorithm"
+"gadm36_CAN_1_sp.rds" "6d1f11cf41d68186" "19080844" "xxhash64"
