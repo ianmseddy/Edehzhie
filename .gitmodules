@@ -19,3 +19,6 @@
 [submodule "modules/fireSense_dataPrepFit"]
 	path = modules/fireSense_dataPrepFit
 	url = https://github.com/PredictiveEcology/fireSense_dataPrepFit
+[submodule "modules/fireSense_dataPrepPredict"]
+	path = modules/fireSense_dataPrepPredict
+	url = https://github.com/PredictiveEcology/fireSense_dataPrepPredict

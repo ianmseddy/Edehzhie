@@ -6,6 +6,7 @@ getOrUpdatePkg <- function(p, minVer, repo) {
 }
 
 getOrUpdatePkg("Require", "0.3.1.9015")
+#TODO: fix this when reproducible works 
 getOrUpdatePkg("SpaDES.project", "0.0.8.9028")
 getOrUpdatePkg("SpaDES.core", "2.0.3.9007")
 
@@ -19,6 +20,14 @@ if (SpaDES.project::user("emcintir")) {
   .fast <- TRUE
 }
 ################ SPADES CALL
+speciesOfConcern <- c("Pice_mar", "Pice_gla", "Pinu_ban", "Lari_lar", "Popu_tre", "Popu_bal", "Betu_pap")
+sppEquiv <- LandR::sppEquivalencies_CA[LandR %in% speciesOfConcern]
+sppEquiv$simName <- c("birch", "tamarack", "white spruce", "black spruce", "jack pine", 
+                      "poplar", "poplar", "poplar", "poplar", "poplar")
+
+sppEquiv$madeupFuel <- c("PoBi", "WhTa", "WhTa", "BlJa", "BlJa", 
+                         "PoBi", "PoBi", "PoBi", "PoBi", "PoBi")
+
 library(SpaDES.project)
 out <- SpaDES.project::setupProject(
   runName = "Edehzhie",
@@ -26,30 +35,31 @@ out <- SpaDES.project::setupProject(
   Restart = FALSE,
   paths = list(projectPath = runName,
                scratchPath = "~/scratch"),
-  modules =
+  modules = c("PredictiveEcology/fireSense_dataPrepFit@biomassFuel",
+              "PredictiveEcology/fireSense_IgnitionFit@biomassFuel",
     file.path("PredictiveEcology",
-              c("canClimateData@usePrepInputs",
-                # "fireSense_IgnitionFit@glmmTMB",
+              # c("canClimateData@usePrepInputs",
                 paste0(# development
                   c("Biomass_borealDataPrep",
-                    "Biomass_core",
-                    "Biomass_speciesData",
-                    # "Biomass_speciesFactorial",
-                    # "Biomass_speciesParameters",
-                    # "fireSense_EscapeFit",
-                    # "fireSense_SpreadFit",
-                    "fireSense_dataPrepFit"),
-                  # "fireSense_dataPrepPredict",
-                  # "fireSense_IgnitionPredict",
-                  # "fireSense_EscapePredict",
-                  # "fireSense_SpreadPredict"),
+                    # "Biomass_core",
+                    "Biomass_speciesData"),
+    #               # "Biomass_speciesFactorial",
+    #               # "Biomass_speciesParameters",
+    #               # "fireSense_EscapeFit",
+    #               # "fireSense_SpreadFit",
+                    # "fireSense_dataPrepFit"),
+                    # "fireSense_dataPrepPredict",
+    #               # "fireSense_IgnitionPredict",
+    #               # "fireSense_EscapePredict",
+    #               # "fireSense_SpreadPredict"),
                   "@development")
               )),
   options = list(spades.allowInitDuringSimInit = TRUE,
-                 spades.allowSequentialCaching = TRUE,
-                 reproducible.showSimilar = TRUE,
-                 reproducible.useMemoise = TRUE,
-                 reproducible.memoisePersist = TRUE,
+                 spades.allowSequentialCaching = FALSE,
+                 reproducible.showSimilar = FALSE,
+                 reproducible.useCache = TRUE,
+                 reproducible.useMemoise = FALSE,
+                 reproducible.memoisePersist = FALSE,
                  reproducible.inputPaths = if (user("ieddy")) "../../data/LandR" else "~/data",
                  LandR.assertions = FALSE,
                  reproducible.shapefileRead = "terra::vect", #required if gadm is down as terra:projct won't work on sf
@@ -72,17 +82,30 @@ out <- SpaDES.project::setupProject(
   params = list(
     fireSense_SpreadFit = list(cores = NA, cacheID_DE = "previous", trace = 1,
                                mode = "fit", SNLL_FS_thresh = 9000),
-    fireSense_IgnitionFit = list(.useCache = c("run")),
+    fireSense_IgnitionFit = list(.useCache = c("run"), 
+                                 rescalers = c("CMDsm" = 100)),
+    fireSense_dataPrepFit = list("ignitionFuelClassCol" = "madeupFuel", 
+                                 "spreadFuelClassCol" = "madeupFuel", 
+                                 ".studyAreaName" = "Edehzhie"),
     .globals = list(.plots = NA,
                     .plotInitialTime = NA,
-                    sppEquivCol = 'Boreal',
-                    cores = 12,
-                    .useCache = c(".inputObjects", "init", "prepIgnitionFitData", "prepSpreadFitData",
-                                  "writeFactorialToDisk"))),
+                    .studyAreaName = "Edehzhie",
+                    sppEquivCol = 'simName',
+                    cores = 12)
+    ),
   objects = list(studyArea = terra::vect("inputs/Edehzhie.shp"), 
-                 studyAreaLarge = terra::vect("inputs/Edehzhie.shp")),
+                 studyAreaLarge = terra::vect("inputs/Edehzhie.shp"),
+                 historicalClimateRasters = list("CMDsm" = terra::rast("inputs/CMDsm_2001-2020.tif"), 
+                                                 "CMDsp" = terra::rast("inputs/CMDsp_2001-2020.tif")), 
+                 rasterToMatch = terra::rast("inputs/rasterToMatch.tif"), 
+                 rasterToMatchLarge = terra::rast("inputs/rasterToMatch.tif"),
+                 sppEquiv = sppEquiv, 
+                 climateVariablesForFire = list("spread" = c("CMDsm"), 
+                                                "ignition" = c("CMDsm"))
+                 ),
   require = c("reproducible", "SpaDES.core", "PredictiveEcology/LandR@development (>= 1.1.0.9073"),
   packages = c("googledrive", 'RCurl', 'XML',
+               "PredictiveEcology/fireSenseUtils@biomassFuel (HEAD)",
                "PredictiveEcology/SpaDES.core@sequentialCaching (HEAD)",
                "PredictiveEcology/reproducible@modsForLargeArchives (HEAD)"),
   useGit = "sub"

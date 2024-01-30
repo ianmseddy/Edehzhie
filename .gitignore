@@ -6,3 +6,7 @@ cache/
 .Rprofile
 
 *.Rproj
+
+*.png
+
+outputs/
