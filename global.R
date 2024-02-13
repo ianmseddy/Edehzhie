@@ -25,8 +25,8 @@ sppEquiv <- LandR::sppEquivalencies_CA[LandR %in% speciesOfConcern]
 sppEquiv$simName <- c("birch", "tamarack", "white spruce", "black spruce", "jack pine", 
                       "poplar", "poplar", "poplar", "poplar", "poplar")
 
-sppEquiv$madeupFuel <- c("PoBi", "WhTa", "WhTa", "BlJa", "BlJa", 
-                         "PoBi", "PoBi", "PoBi", "PoBi", "PoBi")
+sppEquiv$madeupFuel <- c("PBWT", "PBWT", "PBWT", "BlJa", "BlJa", 
+                         "PBWT", "PBWT", "PBWT", "PBWT", "PBWT")
 
 library(SpaDES.project)
 out <- SpaDES.project::setupProject(
@@ -37,22 +37,23 @@ out <- SpaDES.project::setupProject(
                scratchPath = "~/scratch"),
   modules = c("PredictiveEcology/fireSense_dataPrepFit@biomassFuel",
               "PredictiveEcology/fireSense_IgnitionFit@biomassFuel",
+              # "PredictiveEcology/fireSense_dataPrepPredict@pendingClimateData",
     file.path("PredictiveEcology",
               # c("canClimateData@usePrepInputs",
-                paste0(# development
-                  c("Biomass_borealDataPrep",
-                    # "Biomass_core",
-                    "Biomass_speciesData"),
-    #               # "Biomass_speciesFactorial",
-    #               # "Biomass_speciesParameters",
-    #               # "fireSense_EscapeFit",
-    #               # "fireSense_SpreadFit",
-                    # "fireSense_dataPrepFit"),
-                    # "fireSense_dataPrepPredict",
-    #               # "fireSense_IgnitionPredict",
-    #               # "fireSense_EscapePredict",
-    #               # "fireSense_SpreadPredict"),
-                  "@development")
+              paste0(# development
+                c("Biomass_borealDataPrep",
+                  # "Biomass_core",
+                  "Biomass_speciesData",
+                  # "Biomass_speciesFactorial",
+                  # "Biomass_speciesParameters",
+                  "fireSense_EscapeFit",
+                  "fireSense_SpreadFit"),
+                  # "fireSense_dataPrepFit"),
+                  # "fireSense_dataPrepPredict",
+                  # "fireSense_IgnitionPredict",
+                  # "fireSense_EscapePredict"),
+                # "fireSense_SpreadPredict"),
+                "@development")
               )),
   options = list(spades.allowInitDuringSimInit = TRUE,
                  spades.allowSequentialCaching = FALSE,
@@ -84,9 +85,10 @@ out <- SpaDES.project::setupProject(
                                mode = "fit", SNLL_FS_thresh = 9000),
     fireSense_IgnitionFit = list(.useCache = c("run"), 
                                  rescalers = c("CMDsm" = 100)),
-    fireSense_dataPrepFit = list("ignitionFuelClassCol" = "madeupFuel", 
+    fireSense_dataPrepFit = list("ignitionFuelClassCol" = "madeupFuel",  
                                  "spreadFuelClassCol" = "madeupFuel", 
-                                 ".studyAreaName" = "Edehzhie"),
+                                 ".studyAreaName" = "Edehzhie", 
+                                 "igAggFactor" = 32),
     .globals = list(.plots = NA,
                     .plotInitialTime = NA,
                     .studyAreaName = "Edehzhie",
