@@ -25,7 +25,7 @@ sppEquiv <- LandR::sppEquivalencies_CA[LandR %in% speciesOfConcern]
 sppEquiv$simName <- c("birch", "tamarack", "white spruce", "black spruce", "jack pine", 
                       "poplar", "poplar", "poplar", "poplar", "poplar")
 
-sppEquiv$madeupFuel <- c("PBWT", "PBWT", "PBWT", "BlJa", "BlJa", 
+sppEquiv$madeupFuel <- c("PBWT", "PBWT", "PBWT", "Bl", "Ja", 
                          "PBWT", "PBWT", "PBWT", "PBWT", "PBWT")
 
 library(SpaDES.project)
@@ -39,15 +39,15 @@ out <- SpaDES.project::setupProject(
               "PredictiveEcology/fireSense_IgnitionFit@biomassFuel",
               # "PredictiveEcology/fireSense_dataPrepPredict@pendingClimateData",
     file.path("PredictiveEcology",
-              # c("canClimateData@usePrepInputs",
+               # c("canClimateData@usePrepInputs"),
               paste0(# development
                 c("Biomass_borealDataPrep",
                   # "Biomass_core",
                   "Biomass_speciesData",
                   # "Biomass_speciesFactorial",
                   # "Biomass_speciesParameters",
-                  "fireSense_EscapeFit",
-                  "fireSense_SpreadFit"),
+                  "fireSense_EscapeFit"),
+                  # "fireSense_SpreadFit"),
                   # "fireSense_dataPrepFit"),
                   # "fireSense_dataPrepPredict",
                   # "fireSense_IgnitionPredict",
@@ -72,7 +72,7 @@ out <- SpaDES.project::setupProject(
                      "eliotmcintire@gmail.com" 
                    } else if (user("tmichele")) {
                      "tati.micheletti@gmail.com"
-                   } else if (user("ieddy")){
+                   } else if (user("ieddy")) {
                      "ianmseddy@gmail.com"
                    } else NULL,
                  SpaDES.project.fast = isTRUE(.fast),
@@ -84,7 +84,7 @@ out <- SpaDES.project::setupProject(
     fireSense_SpreadFit = list(cores = NA, cacheID_DE = "previous", trace = 1,
                                mode = "fit", SNLL_FS_thresh = 9000),
     fireSense_IgnitionFit = list(.useCache = c("run"), 
-                                 rescalers = c("CMDsm" = 100)),
+                                 rescalers = c("MDC" = 100)),
     fireSense_dataPrepFit = list("ignitionFuelClassCol" = "madeupFuel",  
                                  "spreadFuelClassCol" = "madeupFuel", 
                                  ".studyAreaName" = "Edehzhie", 
@@ -97,17 +97,16 @@ out <- SpaDES.project::setupProject(
     ),
   objects = list(studyArea = terra::vect("inputs/Edehzhie.shp"), 
                  studyAreaLarge = terra::vect("inputs/Edehzhie.shp"),
-                 historicalClimateRasters = list("CMDsm" = terra::rast("inputs/CMDsm_2001-2020.tif"), 
-                                                 "CMDsp" = terra::rast("inputs/CMDsp_2001-2020.tif")), 
-                 rasterToMatch = terra::rast("inputs/rasterToMatch.tif"), 
+                 historicalClimateRasters = list("CMDsm" = terra::rast("inputs/CMDsm_2001-2020.tif")),
+                 rasterToMatch = terra::rast("inputs/rasterToMatch.tif"),
                  rasterToMatchLarge = terra::rast("inputs/rasterToMatch.tif"),
                  sppEquiv = sppEquiv, 
-                 climateVariablesForFire = list("spread" = c("CMDsm"), 
-                                                "ignition" = c("CMDsm"))
+                 climateVariablesForFire = list("spread" = c("MDC"), 
+                                                "ignition" = c("MDC"))
                  ),
   require = c("reproducible", "SpaDES.core", "PredictiveEcology/LandR@development (>= 1.1.0.9073"),
   packages = c("googledrive", 'RCurl', 'XML',
-               "PredictiveEcology/fireSenseUtils@biomassFuel (HEAD)",
+               "PredictiveEcology/fireSenseUtils@biomassFuel",
                "PredictiveEcology/SpaDES.core@sequentialCaching (HEAD)",
                "PredictiveEcology/reproducible@modsForLargeArchives (HEAD)"),
   useGit = "sub"
