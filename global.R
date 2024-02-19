@@ -101,8 +101,8 @@ out <- SpaDES.project::setupProject(
                  rasterToMatch = terra::rast("inputs/rasterToMatch.tif"),
                  rasterToMatchLarge = terra::rast("inputs/rasterToMatch.tif"),
                  sppEquiv = sppEquiv, 
-                 climateVariablesForFire = list("spread" = c("MDC"), 
-                                                "ignition" = c("MDC"))
+                 climateVariablesForFire = list("spread" = c("CMDsm"), 
+                                                "ignition" = c("CMDsm"))
                  ),
   require = c("reproducible", "SpaDES.core", "PredictiveEcology/LandR@development (>= 1.1.0.9073"),
   packages = c("googledrive", 'RCurl', 'XML',
