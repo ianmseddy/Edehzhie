@@ -51,8 +51,6 @@ cores <-  if (peutils::user("ieddy")) {
                                    sizeGbEachProcess = 1)
 }
 
-cores <- 28 #TODO: fix this 
-
 library(SpaDES.project)
 out <- SpaDES.project::setupProject(
   runName = "Edehzhie",
@@ -62,7 +60,8 @@ out <- SpaDES.project::setupProject(
                scratchPath = "~/scratch"),
   modules = c("PredictiveEcology/fireSense_dataPrepFit@lccFix",
               "PredictiveEcology/Biomass_borealDataPrep@lccFix",
-              "PredictiveEcology/Biomass_speciesData@development"
+              "PredictiveEcology/Biomass_speciesData@development",
+              "PredictiveEcology/fireSense_SpreadFit@development"
               ),
   options = list(spades.allowInitDuringSimInit = TRUE,
                  spades.allowSequentialCaching = FALSE, #changed this 
@@ -118,16 +117,13 @@ out <- SpaDES.project::setupProject(
                  climateVariablesForFire = list("spread" = c("CMDsm"), 
                                                 "ignition" = c("CMDsm"))
                  ),
-  require = c("reproducible", "SpaDES.core", "PredictiveEcology/LandR@lccFix (>= 1.1.0.9080)"),
+  require = c("reproducible", "SpaDES.core"),
   packages = c("googledrive", 'RCurl', 'XML',
-               "PredictiveEcology/fireSenseUtils@biomassFuel",
                "PredictiveEcology/SpaDES.core@sequentialCaching (HEAD)",
                "PredictiveEcology/reproducible@modsForLargeArchives (HEAD)"),
   useGit = "sub"
 )
 
-devtools::load_all("../fireSenseUtils")
-devtools::load_all("../LandR")
 #document the NTEMS functions and then push 
 inSim <- SpaDES.core::simInitAndSpades(objects = out$objects, params = out$params, 
                                        modules = out$modules, times = out$times, 
