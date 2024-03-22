@@ -31,3 +31,6 @@
 [submodule "modules/fireSense_SpreadFit"]
 	path = modules/fireSense_SpreadFit
 	url = https://github.com/PredictiveEcology/fireSense_SpreadFit
+[submodule "Biomass_borealDataPrep"]
+	path = Biomass_borealDataPrep
+	url = https://github.com/PredictiveEcology/Biomass_borealDataPrep.git
