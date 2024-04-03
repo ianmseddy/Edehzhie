@@ -1,12 +1,13 @@
 
 inputs/
-
 cache/
-
 .Rprofile
-
 *.Rproj
-
 *.png
-
 outputs/
+.Rproj.user
+.Rhistory
+.Rdata
+.RData
+.secret
+.secrets
