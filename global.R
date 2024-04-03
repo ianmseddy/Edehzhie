@@ -1,6 +1,4 @@
 
-# You have to change the defaults to use NTEMs, and work with data year. 
-# set the BBDP defaults, fix the rstLCCs in fireSense_dataPrepFit before generating the big object. 
 getOrUpdatePkg <- function(p, minVer, repo) {
   if (!isFALSE(try(packageVersion(p) < minVer, silent = TRUE) )) {
     if (missing(repo)) repo = c("predictiveecology.r-universe.dev", getOption("repos"))
@@ -8,7 +6,7 @@ getOrUpdatePkg <- function(p, minVer, repo) {
   }
 }
 
-getOrUpdatePkg("Require", "0.3.1.9015")
+getOrUpdatePkg("Require", "0.3.1.9042")
 #TODO: fix this when reproducible works 
 getOrUpdatePkg("SpaDES.project", "0.0.8.9028")
 getOrUpdatePkg("SpaDES.core", "2.0.3.9007")
@@ -41,8 +39,8 @@ nParams <- length(c("logistic1", "logistic2", "logistic3",
 cores <-  if (peutils::user("ieddy")) {
   localHostEndIp <- 97
   pemisc::makeIpsForNetworkCluster(ipStart = "10.20.0",
-                                   ipEnd = c(97, 189, 220, 106, 217),
-                                   availableCores = c(56, 56, 56, 28, 28),
+                                   ipEnd = c(97, 189, 220, 184, 106),
+                                   availableCores = c(28, 28, 28, 14, 14),
                                    availableRAM = c(500, 500, 500, 250, 250),
                                    localHostEndIp = localHostEndIp,
                                    proc = "cores",
@@ -61,7 +59,7 @@ out <- SpaDES.project::setupProject(
   modules = c("PredictiveEcology/fireSense_dataPrepFit@lccFix",
               "PredictiveEcology/Biomass_borealDataPrep@lccFix",
               "PredictiveEcology/Biomass_speciesData@development",
-              "PredictiveEcology/fireSense_SpreadFit@development"
+              "PredictiveEcology/fireSense_SpreadFit@lccFix"
               ),
   options = list(spades.allowInitDuringSimInit = TRUE,
                  spades.allowSequentialCaching = FALSE, #changed this 
@@ -96,16 +94,15 @@ out <- SpaDES.project::setupProject(
     fireSense_dataPrepFit = list("ignitionFuelClassCol" = "madeupFuel",  
                                  "spreadFuelClassCol" = "madeupFuel", 
                                  ".studyAreaName" = "Edehzhie", 
-                                 "igAggFactor" = 32, 
-                                 ".useCache" = c("overwrite")),
+                                 "whichModulesToPrepare" = "fireSense_SpreadFit",
+                                 "igAggFactor" = 32),
     Biomass_borealDataPrep = list(overrideAgeInFires = FALSE,
                                   overrideBiomassInFires = FALSE),
     .globals = list(.plots = NA,
                     .plotInitialTime = NA,
                     .studyAreaName = "Edehzhie",
                     dataYear = 2011,
-                    sppEquivCol = 'simName',
-                    cores = 12)
+                    sppEquivCol = 'simName')
   ),
   objects = list(studyArea = terra::vect("inputs/Edehzhie.shp"), 
                  studyAreaLarge = terra::vect("inputs/Edehzhie.shp"),
@@ -118,16 +115,16 @@ out <- SpaDES.project::setupProject(
                                                 "ignition" = c("CMDsm"))
                  ),
   require = c("reproducible", "SpaDES.core"),
-  packages = c("googledrive", 'RCurl', 'XML',
-               "PredictiveEcology/SpaDES.core@sequentialCaching (HEAD)",
-               "PredictiveEcology/reproducible@modsForLargeArchives (HEAD)"),
+  packages = c("googledrive", "RCurl", "XML"),
   useGit = "sub"
 )
 
-#document the NTEMS functions and then push 
+#document the NTEMS functions and then push
+#because of browser()
+options("reproducible.useCache" = TRUE)
 inSim <- SpaDES.core::simInitAndSpades(objects = out$objects, params = out$params, 
                                        modules = out$modules, times = out$times, 
-                                       paths = out$paths)
+                                       paths = out$paths, debug = TRUE)
 
 
 
