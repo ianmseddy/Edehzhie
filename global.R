@@ -87,8 +87,9 @@ out <- SpaDES.project::setupProject(
   ),
   times = list(start = 2011, end = 2025),
   params = list(
-    fireSense_SpreadFit = list(cores = cores, cacheID_DE = "previous", trace = 1,
-                               mode = "fit", SNLL_FS_thresh = 3050),
+    fireSense_SpreadFit = list(cores = cores, trace = 1, #cacheID_DE = "previous", Not a param?
+                               mode = "debug", SNLL_FS_thresh = 3050, 
+                               doObjFunAssertions = FALSE),
     fireSense_IgnitionFit = list(.useCache = c("run"), 
                                  rescalers = c("CMDsm" = 100)),
     fireSense_dataPrepFit = list("ignitionFuelClassCol" = "madeupFuel",  
@@ -121,7 +122,7 @@ out <- SpaDES.project::setupProject(
 
 #document the NTEMS functions and then push
 #because of browser()
-options("reproducible.useCache" = TRUE)
+pkgload::load_all("../fireSenseUtils")
 inSim <- SpaDES.core::simInitAndSpades(objects = out$objects, params = out$params, 
                                        modules = out$modules, times = out$times, 
                                        paths = out$paths, debug = TRUE)
