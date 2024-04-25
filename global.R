@@ -11,68 +11,41 @@ getOrUpdatePkg("Require", "0.3.1.9042")
 getOrUpdatePkg("SpaDES.project", "0.0.8.9028")
 getOrUpdatePkg("SpaDES.core", "2.0.3.9007")
 
-
-
 .fast <- FALSE
 ################### setwd to location where project should be located
 if (SpaDES.project::user("emcintir")) {
   setwd("~/GitHub")
   
   # This will set several options that make SpaDES.core run faster;
-  # don't use yet unless you are aware of the things that are being set
+  # don't use yet unless you are aware of the things that are being set #duly noted
   .fast <- TRUE
 }
 
-
-################ SPADES CALL
-# speciesOfConcern <- c("Pice_mar", "Pice_gla", "Pinu_ban", "Lari_lar", "Popu_tre", "Popu_bal", "Betu_pap")
-# sppEquiv <- LandR::sppEquivalencies_CA[LandR %in% speciesOfConcern]
-# sppEquiv$simName <- c("birch", "tamarack", "white spruce", "black spruce", "jack pine", 
-#                       "poplar", "poplar", "poplar", "poplar", "poplar")
-# 
-# sppEquiv$madeupFuel <- c("PBWT", "PBWT", "PBWT", "Bl", "Ja", 
-#                          "PBWT", "PBWT", "PBWT", "PBWT", "PBWT")
-# fwrite(sppEquiv, "inputs/sppEquiv.csv")
-
-nParams <- length(c("logistic1", "logistic2", "logistic3", 
-                    "youngAge", "CMDsm", "NFhigh", "NFlow", "Bl", "Ja", "PBTWT"))
-cores <-  if (peutils::user("ieddy")) {
-  localHostEndIp <- 97
-  pemisc::makeIpsForNetworkCluster(ipStart = "10.20.0",
-                                   ipEnd = c(97, 189, 220, 184, 106),
-                                   availableCores = c(28, 28, 28, 14, 14),
-                                   availableRAM = c(500, 500, 500, 250, 250),
-                                   localHostEndIp = localHostEndIp,
-                                   proc = "cores",
-                                   nProcess = nParams,
-                                   internalProcesses = 10,
-                                   sizeGbEachProcess = 1)
-}
-
-library(SpaDES.project)
 out <- SpaDES.project::setupProject(
   runName = "Edehzhie",
   updateRprofile = TRUE,
   Restart = FALSE,
   paths = list(projectPath = runName,
                scratchPath = "~/scratch"),
-  modules = c("PredictiveEcology/fireSense_dataPrepFit@lccFix",
-              "PredictiveEcology/Biomass_borealDataPrep@lccFix",
-              "PredictiveEcology/Biomass_speciesData@development",
-              "PredictiveEcology/fireSense_SpreadFit@lccFix"
-              ),
+  modules = c("PredictiveEcology/fireSense_dataPrepFit@lccFix", #for 2 lcc and flammableRTMs
+              "PredictiveEcology/Biomass_borealDataPrep@lccFix", #for lcc mapped to dataYear
+              "PredictiveEcology/Biomass_speciesData@development", #development okay
+              "PredictiveEcology/fireSense_SpreadFit@lccFix", 
+              # "PredictiveEcology/fireSense_ignitionFit@biomassFuel", #when necesssary
+              #flammableRTM is not needed (and causes error) as RTM sufficient,
+              "PredictiveEcology/canClimateData@newClimate" #temporary while climateData tested 
+  ),
   options = list(spades.allowInitDuringSimInit = TRUE,
                  spades.allowSequentialCaching = FALSE, #changed this 
                  reproducible.showSimilar = FALSE,
                  reproducible.useCache = TRUE,
                  reproducible.useMemoise = FALSE,
                  reproducible.memoisePersist = FALSE,
-                 reproducible.inputPaths = if (user("ieddy")) "../../data/LandR" else "~/data",
+                 # reproducible.inputPaths = if (user("ieddy")) "../../data/LandR" else "~/data",
+                 #inputPaths has been too frusrating with overwrite = TRUE needed everywhere
                  LandR.assertions = FALSE,
                  reproducible.shapefileRead = "terra::vect", #required if gadm is down as terra:projct won't work on sf
-                 reproducible.gdalwarp = TRUE,
-                 reproducible.showSimilarDepth = 7,
-                 gargle_oauth_cache = if (machine("W-VIC-A127585")) "~/.secret" else NULL,
+                 reproducible.gdalwarp = TRUE, #this will be temporarily turned off by prepInputs_NTEMS_FAO (to avoid crash)
                  gargle_oauth_email =
                    if (user("emcintir")) {
                      "eliotmcintire@gmail.com" 
@@ -83,53 +56,67 @@ out <- SpaDES.project::setupProject(
                    } else NULL,
                  SpaDES.project.fast = isTRUE(.fast),
                  spades.recoveryMode = 1
-                 # reproducible.useGdown = TRUE
+                 # parallelly.availableCores.custom = function(){return(32)} 
   ),
-  times = list(start = 2011, end = 2025),
+  times = list(start = 2011, end = 2012),
   params = list(
-    fireSense_SpreadFit = list(cores = cores, trace = 1, #cacheID_DE = "previous", Not a param?
-                               mode = "debug", SNLL_FS_thresh = 3050, 
-                               doObjFunAssertions = FALSE),
+    fireSense_SpreadFit = list(
+      cores = pemisc::makeIpsForNetworkCluster(
+        ipStart = "10.20.0",
+        ipEnd = c(97, 189, 220, 184, 106),
+        availableCores = c(28, 28, 28, 14, 14),
+        availableRAM = c(500, 500, 500, 250, 250),
+        localHostEndIp = 97,
+        proc = "cores",
+        #nProcess is determined by the number of params - given below
+        #logistic1", "logistic2", "logistic3",  "youngAge", "CMD_sm", "NFhigh", "NFlow", "Bl", "Ja", "PBTWT"
+        nProcess = 10, 
+        internalProcesses = 10,
+        sizeGbEachProcess = 1),
+      trace = 1, #cacheID_DE = "previous", Not a param?
+      mode = "debug", SNLL_FS_thresh = 3050, 
+      doObjFunAssertions = FALSE),
+    Biomass_borealDataPrep = list("overrideAgeInFires" = FALSE, #has bugs
+                                  "overrideBiomassInFires" = FALSE), #has bugs
     fireSense_IgnitionFit = list(.useCache = c("run"), 
-                                 rescalers = c("CMDsm" = 100)),
+                                 rescalers = c("CMD_sm" = 100)),
     fireSense_dataPrepFit = list("ignitionFuelClassCol" = "madeupFuel",  
                                  "spreadFuelClassCol" = "madeupFuel", 
                                  ".studyAreaName" = "Edehzhie", 
                                  "whichModulesToPrepare" = "fireSense_SpreadFit",
                                  "igAggFactor" = 32),
-    Biomass_borealDataPrep = list(overrideAgeInFires = FALSE,
-                                  overrideBiomassInFires = FALSE),
     .globals = list(.plots = NA,
                     .plotInitialTime = NA,
                     .studyAreaName = "Edehzhie",
                     dataYear = 2011,
                     sppEquivCol = 'simName')
   ),
-  objects = list(studyArea = terra::vect("inputs/Edehzhie.shp"), 
-                 studyAreaLarge = terra::vect("inputs/Edehzhie.shp"),
-                 historicalClimateRasters = list("CMDsm" = terra::rast("inputs/CMDsm_2001-2020.tif")),
-                 rasterToMatch = terra::rast("inputs/rasterToMatch.tif"),
-                 rasterToMatchLarge = terra::rast("inputs/rasterToMatch.tif"),
-                 firePerimeters = terra::rast("inputs/firePerimeters.tif"),
-                 sppEquiv = data.table::fread("inputs/sppEquiv.csv"), 
-                 climateVariablesForFire = list("spread" = c("CMDsm"), 
-                                                "ignition" = c("CMDsm"))
-                 ),
-  require = c("reproducible", "SpaDES.core"),
+  require = c("reproducible", "SpaDES.core", "PredictiveEcology/LandR@lccFix"), #lccFix merged in
   packages = c("googledrive", "RCurl", "XML"),
-  useGit = "sub"
+  useGit = "sub",
+  #custom functions and objects
+  functions = "ianmseddy/Edehzhie@main/R/setupFuns.R",
+  studyArea = makeEdehzhieSAandRTM()$studyArea, 
+  studyAreaLarge = makeEdehzhieSAandRTM()$studyArea, #TODO:unnecessary if Biomass_speciesData allows SA now..
+  rasterToMatch = makeEdehzhieSAandRTM()$rasterToMatch,
+  rasterToMatchLarge = makeEdehzhieSAandRTM()$rasterToMatch,#TODO:unnecessary if Biomass_speciesData allows RTM now..
+  climateVariablesForFire = list("spread" = c("CMD_sm"), 
+                                 "ignition" = c("CMD_sm")),
+  climateVariables = list(
+    historical_CMD_sm = list(
+      vars = "historical_CMD_sm",
+      fun = quote(calcAsIs),
+      .dots = list(historical_years = 1991:2022)
+    ),
+    projected_CMD_sm = list(
+      vars = "projected_CMD_sm",
+      fun = quote(calcAsIs),
+      .dots = list(projected_years = 2011:2100)
+    )
+  ),
+  sppEquiv = makeEdehzhieSppEquiv()
 )
-
+# pkgload::load_all("../LandR") 
 #document the NTEMS functions and then push
-#because of browser()
-pkgload::load_all("../fireSenseUtils")
-inSim <- SpaDES.core::simInitAndSpades(objects = out$objects, params = out$params, 
-                                       modules = out$modules, times = out$times, 
-                                       paths = out$paths, debug = TRUE)
+inSim <- do.call(simInitAndSpades, out)
 
-
-
-####
-# fsInit <- simInit(objects = out$objects, params = out$params, modules = out$modules, 
-#                 times = out$times, paths = out$paths)
-# fsOut <- spades(fsInit)
