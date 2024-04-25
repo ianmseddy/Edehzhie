@@ -1,17 +1,24 @@
 makeEdehzhieSAandRTM <- function(){
-  census2 <- reproducible::prepInputs(url = paste0("https://www12.statcan.gc.ca/census-recensement/",
-                                                   "2021/geo/sip-pis/boundary-limites/files-fichiers/lcd_000b21a_e.zip"),
-                                      destinationPath = "inputs", 
+  census2 <- Cache(reproducible::prepInputs, 
+                   url = paste0("https://www12.statcan.gc.ca/census-recensement/",
+                                "2021/geo/sip-pis/boundary-limites/files-fichiers/lcd_000b21a_e.zip"),
+                   destinationPath = checkPath("inputs", create = TRUE), 
                                       fun = "terra::vect")
   census2 <- census2[census2$DGUID == "2021A00036105",]
   census2 <- terra::project(census2, "epsg:25831")
-  rasterToMatch <- LandR::prepInputsLCC(year = 2005, destinationPath = "inputs",
-                                        filename2 = NULL, studyArea = census2)
+  rasterToMatch <- Cache(LandR::prepInputsLCC, 
+                         year = 2005, 
+                         destinationPath = checkPath("inputs", create = TRUE), 
+                         filename2 = NULL,
+                         studyArea = census2, 
+                         userTags = c("prepInputsLCC", "rasterToMatch"))
   census2 <- terra::project(census2, rasterToMatch)
   
 
-  return(list(studyArea = census2, 
-              rasterToMatch = rasterToMatch))
+  return(list(
+    studyArea = census2, 
+    rasterToMatch = rasterToMatch
+  ))
 }
 
 
