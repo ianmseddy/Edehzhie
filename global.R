@@ -72,7 +72,7 @@ out <- SpaDES.project::setupProject(
         internalProcesses = 10,
         sizeGbEachProcess = 1),
       trace = 1, #cacheID_DE = "previous", Not a param?
-      mode = "debug", SNLL_FS_thresh = 3050, 
+      mode = "fit", SNLL_FS_thresh = 3050, 
       doObjFunAssertions = FALSE),
     Biomass_borealDataPrep = list("overrideAgeInFires" = FALSE, #has bugs
                                   "overrideBiomassInFires" = FALSE), #has bugs
@@ -112,7 +112,7 @@ out$climateVariables <- list(
   projected_CMD_sm = list(
     vars = "future_CMD_sm",
     fun = quote(calcAsIs),
-    .dots = list(projected_years = 2011:2100)
+    .dots = list(future_years = 2011:2100)
   )
 )
 # pkgload::load_all("../LandR") 
