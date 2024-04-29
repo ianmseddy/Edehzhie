@@ -6,10 +6,10 @@ getOrUpdatePkg <- function(p, minVer, repo) {
   }
 }
 
-getOrUpdatePkg("Require", "0.3.1.9042")
+getOrUpdatePkg("Require", "0.3.1.9067")
 #TODO: fix this when reproducible works 
-getOrUpdatePkg("SpaDES.project", "0.0.8.9028")
-getOrUpdatePkg("SpaDES.core", "2.0.3.9007")
+getOrUpdatePkg("SpaDES.project", "0.0.8.9047")
+getOrUpdatePkg("SpaDES.core", "2.0.5")
 
 .fast <- FALSE
 ################### setwd to location where project should be located
@@ -41,8 +41,6 @@ out <- SpaDES.project::setupProject(
                  reproducible.useCache = TRUE,
                  reproducible.useMemoise = FALSE,
                  reproducible.memoisePersist = FALSE,
-                 # reproducible.inputPaths = if (user("ieddy")) "../../data/LandR" else "~/data",
-                 #inputPaths has been too frusrating with overwrite = TRUE needed everywhere
                  LandR.assertions = FALSE,
                  reproducible.shapefileRead = "terra::vect", #required if gadm is down as terra:projct won't work on sf
                  reproducible.gdalwarp = TRUE, #this will be temporarily turned off by prepInputs_NTEMS_FAO (to avoid crash)
@@ -102,21 +100,22 @@ out <- SpaDES.project::setupProject(
   rasterToMatchLarge = makeEdehzhieSAandRTM()$rasterToMatch,#TODO:unnecessary if Biomass_speciesData allows RTM now..
   climateVariablesForFire = list("spread" = c("CMD_sm"), 
                                  "ignition" = c("CMD_sm")),
-  climateVariables = list(
-    historical_CMD_sm = list(
-      vars = "historical_CMD_sm",
-      fun = quote(calcAsIs),
-      .dots = list(historical_years = 1991:2022)
-    ),
-    projected_CMD_sm = list(
-      vars = "projected_CMD_sm",
-      fun = quote(calcAsIs),
-      .dots = list(projected_years = 2011:2100)
-    )
-  ),
   sppEquiv = makeEdehzhieSppEquiv()
+)
+
+out$climateVariables <- list(
+  historical_CMD_sm = list(
+    vars = "historical_CMD_sm",
+    fun = quote(calcAsIs),
+    .dots = list(historical_years = 1991:2022)
+  ),
+  projected_CMD_sm = list(
+    vars = "future_CMD_sm",
+    fun = quote(calcAsIs),
+    .dots = list(projected_years = 2011:2100)
+  )
 )
 # pkgload::load_all("../LandR") 
 #document the NTEMS functions and then push
-inSim <- do.call(simInitAndSpades, out)
+inSim <- do.call(SpaDES.core::simInitAndSpades, out)
 
