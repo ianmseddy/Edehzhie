@@ -72,7 +72,8 @@ out <- SpaDES.project::setupProject(
         internalProcesses = 10,
         sizeGbEachProcess = 1),
       trace = 1, #cacheID_DE = "previous", Not a param?
-      mode = "fit", SNLL_FS_thresh = 3050, 
+      mode = c("fit", "plot"),
+      SNLL_FS_thresh = 3050, 
       doObjFunAssertions = FALSE),
     Biomass_borealDataPrep = list("overrideAgeInFires" = FALSE, #has bugs
                                   "overrideBiomassInFires" = FALSE), #has bugs
@@ -118,4 +119,4 @@ out$climateVariables <- list(
 # pkgload::load_all("../LandR") 
 #document the NTEMS functions and then push
 inSim <- do.call(SpaDES.core::simInitAndSpades, out)
-
+saveSimList(inSim, "outputs/Edehzhie_Fitted_simList.rds")
